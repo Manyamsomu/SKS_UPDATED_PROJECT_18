@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk SMS Sender with MongoDB</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #3a8dff, #4e9b55);
+      background-size: cover;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 50px auto;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #fff;
+      padding: 10px 20px;
+      margin: 0 10px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.2);
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      background: rgba(255, 255, 255, 0.5);
+      color: #000;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    input, select, textarea {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #ccc;
+    }
+
+    button {
+      background: #7ebbcf;
+      color: #ffffff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #3b6cbb;
+    }
+
+    #status {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    .icon {
+      margin-right: 10px;
+      color: #3642d0;
+    }
+
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: #ff6f00;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="/send-sms"><i class="fas fa-database icon"></i>Send from MongoDB</a>
+      <a href="/manage-db"><i class="fas fa-tools icon"></i>Manage Database</a>
+    </nav>
+
+    <h1><i class="fas fa-sms"></i> Bulk SMS Sender with MongoDB</h1>
+
+    <form id="smsForm">
+      <div class="form-group">
+        <label for="collectionSelect"><i class="fas fa-folder-open icon"></i>Select Collection:</label>
+        <select id="collectionSelect">
+          <option>Select a collection</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fieldSelect"><i class="fas fa-phone icon"></i>Select Mobile Number Field:</label>
+        <select id="fieldSelect">
+          <option>Select a collection first</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="messageBox"><i class="fas fa-pencil-alt icon"></i>Enter Message:</label>
+        <textarea id="messageBox" rows="5" placeholder="Type your message here..." required></textarea>
+      </div>
+
+      <button type="submit"><i class="fas fa-paper-plane icon"></i>Send SMS</button>
+    </form>
+
+    <p id="status"></p>
+  </div>
+
+  <footer>
+    <p>Powered by <a href="#">YourCompany</a>. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const collectionSelect = document.getElementById('collectionSelect');
+      const fieldSelect = document.getElementById('fieldSelect');
+      const form = document.getElementById('smsForm');
+      const status = document.getElementById('status');
+
+      // Fetch collections from MongoDB
+      fetch('/collections')
+        .then(res => res.json())
+        .then(data => {
+          data.collections.forEach(collection => {
+            const option = document.createElement('option');
+            option.value = collection;
+            option.textContent = collection;
+            collectionSelect.appendChild(option);
+          });
+        });
+
+      // Fetch fields for selected collection
+      collectionSelect.addEventListener('change', () => {
+        const collection = collectionSelect.value;
+        fieldSelect.innerHTML = '<option>Loading fields...</option>';
+
+        fetch(`/fields?collection=${collection}`)
+          .then(res => res.json())
+          .then(data => {
+            fieldSelect.innerHTML = '';
+            data.fields.forEach(field => {
+              const option = document.createElement('option');
+              option.value = field;
+              option.textContent = field;
+              fieldSelect.appendChild(option);
+            });
+          });
+      });
+
+      // Handle form submission
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const collection = collectionSelect.value;
+        const field = fieldSelect.value;
+        const message = document.getElementById('messageBox').value;
+
+        status.textContent = 'Sending messages...';
+
+        fetch('/mongo_noramal_send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ collection, field, message })
+        })
+        .then(res => res.json())
+        .then(data => {
+          status.textContent = data.message;
+        })
+        .catch(err => {
+          status.textContent = 'Error sending messages.';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk SMS Sender with Templates</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="/static/advanced_style.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="#"><i class="fas fa-envelope"></i> Template Messaging</a>
+    </nav>
+
+    <h1><i class="fas fa-sms"></i> Bulk SMS Sender</h1>
+
+    <!-- <form id="smsForm" enctype="multipart/form-data">
+      File Selection
+      <div class="form-group">
+        <label for="excelFile"><i class="fas fa-upload"></i> Select Excel File:</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls" required>
+      </div>
+
+      <!-- Sheet Selection -->
+      <!-- <div class="form-group">
+        <label for="sheetSelect"><i class="fas fa-table"></i> Select Sheet:</label>
+        <select id="sheetSelect"></select>
+      </div> -->
+
+      <!-- Phone Column Selection -->
+      <!-- <div class="form-group">
+        <label for="phoneColumn"><i class="fas fa-phone"></i> Select Phone Number Column:</label>
+        <select id="phoneColumn"></select>
+      </div> -->
+
+      <!-- Template Selection -->
+      <!-- <div class="form-group">
+        <label for="templateSelect"><i class="fas fa-comments"></i> Select Template:</label>
+        <select id="templateSelect"></select>
+      </div> -->
+
+      <!-- Placeholder Mapping -->
+      <!-- <div class="form-group">
+        <label><i class="fas fa-cogs"></i> Map Placeholders to Columns:</label>
+        <div id="placeholderMap"></div>
+      </div> -->
+
+      <!-- Preview Final Message -->
+      <!-- <div class="form-group">
+        <label for="templatePreview"><i class="fas fa-eye"></i> Template Preview:</label>
+        <textarea id="templatePreview" rows="4" readonly></textarea>
+      </div> -->
+
+      <!-- Submit Button -->
+      <!-- <button type="submit"><i class="fas fa-paper-plane"></i> Send SMS</button>
+    </form>
+
+    <p id="status"></p>
+  </div>
+
+  <footer>
+    <p>&copy; 2024 Bulk SMS Sender. All rights reserved.</p>
+  </footer> -->
+
+  <!-- External Libraries -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> -->
+  <!-- JavaScript Code -->
+  <!-- <script>
+    let workbook;
+    let placeholderMap = {};
+    const templates = [
+      "Dear {Name}, your order {OrderID} is confirmed.",
+      "Hello {Name}, your appointment is scheduled at {Time}.",
+      "Dear {Name}, your account {AccountID} has been credited.",
+      ];
+
+    // Handle file upload
+    document.getElementById("excelFile").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const data = new Uint8Array(event.target.result);
+        workbook = XLSX.read(data, { type: "array" });
+        populateSheetDropdown();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Populate Sheets
+    function populateSheetDropdown() {
+      const sheetSelect = document.getElementById("sheetSelect");
+      sheetSelect.innerHTML = '<option value="">--Select a Sheet--</option>';
+      workbook.SheetNames.forEach(sheet => {
+        sheetSelect.innerHTML += `<option value="${sheet}">${sheet}</option>`;
+      });
+      sheetSelect.addEventListener("change", populateColumns);
+    }
+
+    // Populate Columns
+    function populateColumns() {
+      const sheetName = document.getElementById("sheetSelect").value;
+      const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+      const columns = sheet[0] || [];
+
+      const phoneSelect = document.getElementById("phoneColumn");
+      const placeholderContainer = document.getElementById("placeholderMap");
+      phoneSelect.innerHTML = '<option value="">--Select Phone Column--</option>';
+      placeholderContainer.innerHTML = "";
+
+      columns.forEach(col => {
+        phoneSelect.innerHTML += `<option value="${col}">${col}</option>`;
+      });
+
+      populateTemplates(columns);
+    }
+
+    // Populate Templates
+    function populateTemplates(columns) {
+      const templateSelect = document.getElementById("templateSelect");
+      templateSelect.innerHTML = '<option value="">--Select a Template--</option>';
+
+      templates.forEach((template, index) => {
+        templateSelect.innerHTML += `<option value="${index}">${template}</option>`;
+      });
+
+      templateSelect.addEventListener("change", () => mapPlaceholders(columns));
+    }
+
+    // Map Placeholders to Columns
+    function mapPlaceholders(columns) {
+      const templateIndex = document.getElementById("templateSelect").value;
+      const templateMessage = templates[templateIndex] || "";
+
+      const placeholderContainer = document.getElementById("placeholderMap");
+      placeholderContainer.innerHTML = "";
+
+      const placeholders = templateMessage.match(/{\w+}/g) || [];
+      placeholders.forEach(placeholder => {
+        placeholderContainer.innerHTML += `
+          <div>
+            <label>${placeholder}:</label>
+            <select data-placeholder="${placeholder}">
+              <option value="">--Select Column--</option>
+              ${columns.map(col => `<option value="${col}">${col}</option>`).join("")}
+            </select>
+          </div>
+        `;
+      });
+
+      updateTemplatePreview();
+    }
+
+    // Update Template Preview
+    function updateTemplatePreview() {
+      const templateIndex = document.getElementById("templateSelect").value;
+      let message = templates[templateIndex] || "";
+
+      document.querySelectorAll("#placeholderMap select").forEach(select => {
+        const placeholder = select.getAttribute("data-placeholder");
+        const column = select.value || placeholder;
+        message = message.replace(placeholder, `[${column}]`);
+      });
+
+      document.getElementById("templatePreview").value = message;
+    }
+
+    // Handle form submission
+    document.getElementById("smsForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const phoneColumn = document.getElementById("phoneColumn").value;
+      const finalTemplate = document.getElementById("templatePreview").value;
+
+      if (!phoneColumn || !finalTemplate) {
+        alert("Please select phone column and finalize the template.");
+        return;
+      }
+
+      alert("Message sent with template:\n" + finalTemplate);
+    }); -->
+<!-- //   </script> -->
+<!-- </body> -->
+<!-- </html> -->
+
+
+
+
+
+      <!-- ------------new -------- -->
+      <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk SMS Sender</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: #333;
+    }
+    .container {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #007bff;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: 500;
+      margin-bottom: 5px;
+      display: block;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    textarea {
+      resize: none;
+      height: 100px;
+    }
+    button {
+      background-color: #007bff;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #previewMessages {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-sms"></i> Bulk SMS Sender</h1>
+    <form id="smsForm" enctype="multipart/form-data">
+      <!-- File Selection -->
+      <div class="form-group">
+        <label for="excelFile"><i class="fas fa-upload"></i> Select Excel File:</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls" required>
+      </div>
+
+      <!-- Sheet Selection -->
+      <div class="form-group">
+        <label for="sheetSelect"><i class="fas fa-table"></i> Select Sheet:</label>
+        <select id="sheetSelect"></select>
+      </div>
+
+      <!-- Phone Column Selection -->
+      <div class="form-group">
+        <label for="phoneColumn"><i class="fas fa-phone"></i> Select Phone Number Column:</label>
+        <select id="phoneColumn"></select>
+      </div>
+
+      <!-- Template Selection -->
+      <div class="form-group">
+        <label for="templateSelect"><i class="fas fa-comments"></i> Select Template:</label>
+        <select id="templateSelect"></select>
+      </div>
+
+      <!-- Placeholder Mapping -->
+      <div class="form-group">
+        <label><i class="fas fa-cogs"></i> Map Placeholders to Columns:</label>
+        <div id="placeholderMap"></div>
+      </div>
+
+      <!-- Preview Final Message -->
+      <div class="form-group">
+        <label><i class="fas fa-eye"></i> Message Preview:</label>
+        <div id="previewMessages"></div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit"><i class="fas fa-paper-plane"></i> Send SMS</button>
+    </form>
+  </div>
+
+  <footer>
+    <p>&copy; 2024 Bulk SMS Sender. All rights reserved.</p>
+  </footer>
+
+  <!-- External Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    let workbook;
+    const templates = [
+      "Dear {Name}, your order {OrderID} is confirmed.",
+      "Hello {Name}, your appointment is scheduled at {Time}.",
+      "Dear {Name}, your account {AccountID} has been credited."
+    ];
+
+    document.getElementById("excelFile").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const data = new Uint8Array(event.target.result);
+        workbook = XLSX.read(data, { type: "array" });
+        populateSheetDropdown();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function populateSheetDropdown() {
+      const sheetSelect = document.getElementById("sheetSelect");
+      sheetSelect.innerHTML = '<option value="">--Select a Sheet--</option>';
+      workbook.SheetNames.forEach(sheet => {
+        sheetSelect.innerHTML += `<option value="${sheet}">${sheet}</option>`;
+      });
+      sheetSelect.addEventListener("change", populateColumns);
+    }
+
+    function populateColumns() {
+      const sheetName = document.getElementById("sheetSelect").value;
+      const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+      const columns = sheet[0] || [];
+
+      const phoneSelect = document.getElementById("phoneColumn");
+      phoneSelect.innerHTML = '<option value="">--Select Phone Column--</option>';
+
+      document.getElementById("placeholderMap").innerHTML = "";
+
+      columns.forEach(col => {
+        phoneSelect.innerHTML += `<option value="${col}">${col}</option>`;
+      });
+
+      populateTemplates(columns);
+    }
+
+    function populateTemplates(columns) {
+      const templateSelect = document.getElementById("templateSelect");
+      templateSelect.innerHTML = '<option value="">--Select a Template--</option>';
+
+      templates.forEach((template, index) => {
+        templateSelect.innerHTML += `<option value="${index}">${template}</option>`;
+      });
+
+      templateSelect.addEventListener("change", () => mapPlaceholders(columns));
+    }
+
+    function mapPlaceholders(columns) {
+      const templateIndex = document.getElementById("templateSelect").value;
+      const templateMessage = templates[templateIndex] || "";
+
+      const placeholderContainer = document.getElementById("placeholderMap");
+      placeholderContainer.innerHTML = "";
+
+      const placeholders = templateMessage.match(/{\w+}/g) || [];
+      placeholders.forEach(placeholder => {
+        placeholderContainer.innerHTML += `
+          <div>
+            <label>${placeholder}:</label>
+            <select data-placeholder="${placeholder}">
+              <option value="">--Select Column--</option>
+              ${columns.map(col => `<option value="${col}">${col}</option>`).join("")}
+            </select>
+          </div>
+        `;
+      });
+
+      document.querySelectorAll("#placeholderMap select").forEach(select => {
+        select.addEventListener("change", updateMessagePreview);
+      });
+    }
+
+    function updateMessagePreview() {
+      const sheetName = document.getElementById("sheetSelect").value;
+      const phoneColumn = document.getElementById("phoneColumn").value;
+      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      const templateIndex = document.getElementById("templateSelect").value;
+      let templateMessage = templates[templateIndex] || "";
+
+      const previewContainer = document.getElementById("previewMessages");
+      const placeholderMappings = {};
+
+      // Get the placeholder mappings from the select elements
+      document.querySelectorAll("#placeholderMap select").forEach(select => {
+        placeholderMappings[select.dataset.placeholder] = select.value;
+      });
+
+      // Clear the preview container before appending new messages
+      previewContainer.innerHTML = "";
+
+      // Loop through each row in the sheet and generate a message for each phone number
+      rows.forEach(row => {
+        let message = templateMessage;
+
+        // Replace placeholders with actual values from the row
+        Object.keys(placeholderMappings).forEach(placeholder => {
+          message = message.replace(placeholder, row[placeholderMappings[placeholder]] || "");
+        });
+
+        const phoneNumber = row[phoneColumn];
+        if (phoneNumber) {
+          previewContainer.innerHTML += `<p><strong>${phoneNumber}</strong>: ${message}</p>`;
+        }
+      });
+    }
+    
+  document.getElementById("smsForm").addEventListener("submit", function (e) {
+    e.preventDefault();  // Prevent form from reloading the page
+
+    const sheetName = document.getElementById("sheetSelect").value;
+    const phoneColumn = document.getElementById("phoneColumn").value;
+    const templateIndex = document.getElementById("templateSelect").value;
+    const templateMessage = templates[templateIndex] || "";
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    // Gather phone numbers and mapped placeholder values
+    const phones = [];
+    const placeholders = [];
+
+    rows.forEach(row => {
+      const phone = row[phoneColumn];
+      if (phone) {
+        phones.push(phone);
+
+        // Prepare placeholder mappings for the current row
+        const rowPlaceholders = {};
+        document.querySelectorAll("#placeholderMap select").forEach(select => {
+          const placeholder = select.dataset.placeholder;
+          const column = select.value;
+          rowPlaceholders[placeholder.replace(/[{}]/g, "")] = row[column] || "";
+        });
+        placeholders.push(rowPlaceholders);
+      }
+    });
+
+    // Send the data to the backend using fetch
+    fetch('/advanced_send_sms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        templateMessage: templateMessage,
+        phones: phones,
+        placeholders: placeholders
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert("Error: " + data.error);
+      } else {
+        alert(data.message);  // Success message
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to send SMS.');
+    });
+  });
+
+
+
+  </script>
+</body>
+</html>
+
+           
+      
+    

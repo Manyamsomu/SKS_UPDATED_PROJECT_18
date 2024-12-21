@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile Page</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #3a8dff, #4e9b55); /* Blue and green gradient */
+            background-size: cover;
+            color: #fff;
+        }
+
+        .profile-container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        section {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        input::placeholder {
+            color: #ccc;
+        }
+
+        button {
+            background: #7ebbcf;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #3b6cbb;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+
+        .activity-log {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            height: 100px;
+            overflow-y: auto;
+            color: #ccc;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #ff6f00;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h1>User Profile</h1>
+
+        <!-- User Information -->
+        <section id="user-info">
+            <h2>User Information</h2>
+            <input type="text" id="user-name" placeholder="Name" value="John Doe">
+            <input type="email" id="user-email" placeholder="Email" value="john.doe@example.com">
+            <input type="text" id="user-phone" placeholder="Mobile Number" value="+1234567890">
+            <label>Profile Picture:</label>
+            <input type="file" id="profile-picture">
+            <button onclick="saveUserInfo()">Save Information</button>
+        </section>
+
+        <!-- Password Management -->
+        <section id="password-management">
+            <h2>Password Management</h2>
+            <input type="password" id="old-password" placeholder="Old Password">
+            <input type="password" id="new-password" placeholder="New Password">
+            <input type="password" id="confirm-password" placeholder="Confirm New Password">
+            <button onclick="changePassword()">Change Password</button>
+        </section>
+
+        <!-- Activity Logs -->
+        <section id="activity-logs">
+            <h2>Activity Logs</h2>
+            <div class="activity-log" id="activity-log-content">
+                <p>Sent 200 SMS to 150 contacts on 2024-03-01</p>
+                <p>Logged in at 10:00 AM on 2024-03-01</p>
+                <p>Logged out at 5:00 PM on 2024-02-29</p>
+            </div>
+        </section>
+
+        <!-- Account Settings -->
+        <section id="account-settings">
+            <h2>Account Settings</h2>
+            <div class="toggle-switch">
+                <label>Email Notifications:</label>
+                <input type="checkbox" id="email-notifications" checked>
+            </div>
+            <div class="toggle-switch">
+                <label>SMS Notifications:</label>
+                <input type="checkbox" id="sms-notifications" checked>
+            </div>
+            <button onclick="saveSettings()">Save Settings</button>
+        </section>
+
+        <!-- Logout Option -->
+        <section id="logout">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </section>
+    </div>
+
+    <footer>
+        <p>Powered by <a href="#">YourCompany</a>. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Save User Information
+        function saveUserInfo() {
+            const name = document.getElementById("user-name").value;
+            const email = document.getElementById("user-email").value;
+            const phone = document.getElementById("user-phone").value;
+            alert(`User Information Saved:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}`);
+        }
+
+        // Change Password
+        function changePassword() {
+            const oldPassword = document.getElementById("old-password").value;
+            const newPassword = document.getElementById("new-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            if (newPassword === confirmPassword && oldPassword) {
+                alert("Password Changed Successfully!");
+            } else {
+                alert("Passwords do not match or fields are empty.");
+            }
+        }
+
+        // Save Account Settings
+        function saveSettings() {
+            const emailNotifications = document.getElementById("email-notifications").checked;
+            const smsNotifications = document.getElementById("sms-notifications").checked;
+            alert(`Settings Saved:\nEmail Notifications: ${emailNotifications}\nSMS Notifications: ${smsNotifications}`);
+        }
+
+        // Logout Function
+        function logout() {
+            alert("You have been logged out!");
+            window.location.reload(); // Demo reloads the page
+        }
+    </script>
+</body>
+</html>
+ <!-- THIS IS THE entair code for profile -->
